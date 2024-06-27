@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script async>
+        let score = 0;
+        let words = [];
+        let wordCount = parseInt(prompt("단어의 개수를 입력해 주세요."));
+        for(let i = 0 ; i < wordCount ; i++){
+            words.push(prompt((i+1)+"번째 단어를 입력해 주세요."));
+        }
+
+        function delay(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms))
+        }
+
+        function mix(){
+            let listCopy = [];
+            for(let i = 1 ; i <= wordCount*2 ; i++){
+                let tmp = document.getElementById("button" + i);
+                tmp["word"] = "";
+                tmp["completed"] = false;
+                listCopy.push(tmp);
+            }
+            for(let i = 0 ; i < wordCount ; i++){
+                let selectNum = Math.floor(Math.random()*listCopy.length);
+                listCopy[selectNum]["word"] = words[i];
+                listCopy[selectNum]["completed"] = false;
+                listCopy[selectNum].innerHTML = "";
+                listCopy.splice(selectNum, 1);
+                selectNum = Math.floor(Math.random()*listCopy.length);
+                listCopy[selectNum]["word"] = words[i];
+                listCopy[selectNum]["completed"] = false;
+                listCopy[selectNum].innerHTML = "";
+                listCopy.splice(selectNum, 1);
+            }
+        }
+        let chosen;
+        let waiting = false;
+        async function choose(targetNum){
+            if(waiting) return;
+            let target = document.getElementById("button"+targetNum);
+            if(target.completed) return;
+            if(chosen!=null){
+                target.innerHTML = target.word;
+                if(chosen.word == target.word){
+                    chosen.completed = true;
+                    target.completed = true;
+                    let allComplete = true;
+                    for(let i = 1 ; i <= wordCount*2 ; i++){
+                        if(!document.getElementById("button"+i).completed){
+                            allComplete = false;
+                            break;
+                        }
+                    }
+                    if(allComplete){
+                        for(let i = 1 ; i <= wordCount*2 ; i++){
+                            document.getElementById("button"+i).style = "background-color:greenyellow";
+                        }
+                        document.getElementById("score").innerHTML = "Score: " + (++score);
+                        waiting = true;
+                        await delay(1000);
+                        mix();
+                        for(let i = 1 ; i <= wordCount*2 ; i++){
+                            document.getElementById("button"+i).style = "";
+                        }
+                        waiting = false;
+                    }
+                    chosen.style = "";
+                    chosen = null;
+                }
+                else{
+                    chosen.style = "background-color:red";
+                    target.style = "background-color:red";
+                    waiting = true;
+                    await delay(1000);
+                    chosen.style = "";
+                    target.style = "";
+                    chosen.innerHTML = "";
+                    target.innerHTML = "";
+                    chosen = null;
+                    waiting = false;
+                }
+            }
+            else{
+                chosen = target;
+                chosen.style = "background-color:white";
+                chosen.innerHTML = chosen.word;
+            }
+        }
+    </script>
+    <style>
+        button{
+            display:inline;
+            width:100px;
+            height:100px;
+            transition:0.3s;
+            background-color:grey;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flipgame</h1>
+    <h2 id="score">Score: 0</h2>
+    <script>
+        for(let i = 0 ; i < wordCount ; i++){
+            document.write("<button id='button" + (i+1) + "' onclick='choose(" + (i+1) + ")'></button>");
+        }
+        document.write("<br>");
+        for(let i = wordCount ; i < wordCount*2 ; i++){
+            document.write("<button id='button" + (i+1) + "' onclick='choose(" + (i+1) + ")'></button>");
+        }
+        document.write("<h3>Words: ");
+        for(let i = 0 ; i < wordCount ; i++){
+            document.write(words[i] + ", ");
+        }
+        document.write("</h3>");
+        mix();
+    </script>
+</body>
+</html>
